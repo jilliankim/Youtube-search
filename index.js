@@ -97,7 +97,7 @@ function renderHtml(data) {
         $('.search-results').append(resultHtml);
     }
     // add Next button
-    $('.search-results').append(`<button type="button" class="next-results">Next</button>`);
+    $('.search-results').prepend(`<button type="button" class="next-results">Next</button>`);
 }
 
 function handleNextPage(searchString, nextPageToken) {
