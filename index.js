@@ -11,6 +11,9 @@ function handleSearch() {
         
         // make AJAX call 
         getAPIData(searchString, null, handleAPIResponse);
+        
+        // what to handle here vs what to handle in handleAPIResponse ??
+        
     })
 }
 
@@ -35,7 +38,7 @@ function getAPIData(string, nextPageToken, callback) {
 
 function handleAPIResponse(result) {
     
-    //console.log(searchString); // how to get searchString available here?
+    //console.log(searchString); // how to get searchString available here? need it for handleNextPage
     
     let nextPageToken = result.nextPageToken;
     let searchString = $('.query').val();
@@ -87,7 +90,6 @@ function renderHtml(data) {
         let resultHtml = `<a href="${data[i].getUrl()}" target="_blank">
                           <div class="result">
                             <h2>${data[i].title}</h2>
-                            <p>${data[i].description}</p>
                                 <img src="${data[i].thumbnailUrl}" alt="${data[i].description}"
                           </div>
                           </a>`
