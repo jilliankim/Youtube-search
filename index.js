@@ -35,7 +35,7 @@ function getAPIData(string, nextPageToken, callback) {
 
 function handleAPIResponse(result) {
     
-    console.log(searchString); // how to get searchString available here?
+    //console.log(searchString); // how to get searchString available here?
     
     let nextPageToken = result.nextPageToken;
     let searchString = $('.query').val();
