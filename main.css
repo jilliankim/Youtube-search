@@ -13,6 +13,6 @@ body {
     border: 1px solid black;
 }
 
-input[name="query"] {
-    
+.next-results {
+    margin-bottom:20px;
 }
