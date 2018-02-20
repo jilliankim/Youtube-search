@@ -1,7 +1,8 @@
-'use strict';
-
 //use document ready
 $(document).ready(function() {
+    
+    'use strict';
+
     //const is safer in document.ready
     const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
     const YOUTUBE_API_KEY = 'AIzaSyBaRVmbuUlZraJz_FMp1_EKn2YD81p90mA';
