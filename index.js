@@ -1,5 +1,9 @@
+'use strict';
+
 const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
 const YOUTUBE_API_KEY = 'AIzaSyBaRVmbuUlZraJz_FMp1_EKn2YD81p90mA';
+
+let searchString = '';
 
 // handles the search 
 function handleSearch() {
@@ -7,13 +11,10 @@ function handleSearch() {
         event.preventDefault();
         
         // get search string
-        let searchString = $('.query').val();
+        searchString = $('.query').val();
         
         // make AJAX call 
         getAPIData(searchString, null, handleAPIResponse);
-        
-        // what to handle here vs what to handle in handleAPIResponse ??
-        
     })
 }
 
@@ -36,15 +37,11 @@ function getAPIData(string, nextPageToken, callback) {
   $.ajax(settings);
 }
 
-function handleAPIResponse(result) {
-    
-    //console.log(searchString); // how to get searchString available here? need it for handleNextPage
-    
-    let nextPageToken = result.nextPageToken;
-    let searchString = $('.query').val();
-    
-    // compile result data
-    let resultArr = compileResult(result);
+function handleAPIResponse(response) {    
+    let nextPageToken = response.nextPageToken;
+
+    // compile result data into array of objects
+    let resultArr = compileResult(response);
     
     // render html
     renderHtml(resultArr);
@@ -56,7 +53,6 @@ function handleAPIResponse(result) {
 }
 
 function compileResult(result) {
-            
     // build array of objects containing search results
     let resultsPerPage = result.pageInfo.resultsPerPage;
     let resultArr = [];
@@ -87,12 +83,12 @@ function renderHtml(data) {
     
     // loop through data and append html to .search-results
     for(let i = 0; i < data.length; i++) {
-        let resultHtml = `<a href="${data[i].getUrl()}" target="_blank">
-                          <div class="result">
+        let resultHtml = `<div class="result">
                             <h2>${data[i].title}</h2>
-                                <img src="${data[i].thumbnailUrl}" alt="${data[i].description}"
-                          </div>
-                          </a>`
+                            <a href="${data[i].getUrl()}" target="_blank">
+                                <img src="${data[i].thumbnailUrl}" alt="${data[i].description}"/>
+                            </a>
+                          </div>`
         
         $('.search-results').append(resultHtml);
     }
@@ -100,16 +96,22 @@ function renderHtml(data) {
     $('.search-results').prepend(`<button type="button" class="next-results">Next</button>`);
 }
 
+// listens for a click on the Next page button
+// calls API to request the next page of data
 function handleNextPage(searchString, nextPageToken) {
-    $('.search-results').on('click', '.next-results', function() {       
+    $('.search-results').on('click', '.next-results', function() {
+        console.log(`Search String: ${searchString}`);
+        console.log(nextPageToken);
+        
         // make AJAX call to get next results page
         getAPIData(searchString, nextPageToken, handleAPIResponse);
     })
 }
 
+// empties the .search-results div
 function clearResults() {
     // clear search-results
-    $('.search-results').empty();
+    $('.search-results').html('');
 }
 
 $(handleSearch);
