@@ -1,13 +1,9 @@
-function runApp() {
-
 'use strict';
 
 const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
 const YOUTUBE_API_KEY = 'AIzaSyBaRVmbuUlZraJz_FMp1_EKn2YD81p90mA';
 
-let searchString = '';
-
-let nextPageToken, prevPageToken;
+let searchString, nextPageToken, prevPageToken;
 
 // handles the search 
 function handleSearch() {
@@ -17,7 +13,10 @@ function handleSearch() {
         // get search string
         searchString = $('.query').val();
         
-        // make AJAX call 
+        // clear and deselect input
+        $('.query').val('').blur(); 
+        
+        // make AJAX call. pass null for pageToken
         getAPIData(searchString, null, handleAPIResponse);
     })
 }
@@ -41,39 +40,36 @@ function getAPIData(string, pageToken, callback) {
   $.ajax(settings);
 }
 
+// API callback function
+// renders the response as html, updates tokens, and creates next/prev listeners
 function handleAPIResponse(response) {        
-
-    // compile result data into array of objects and render as html
-    renderHtml(compileResult(response));
+    renderHtml(compileResults(response));
 
     nextPageToken = response.nextPageToken;
     prevPageToken = response.prevPageToken;
     
-    // listen for click on Next and Prev buttons
-    handleNextPage(searchString, nextPageToken);
-    handlePrevPage(searchString, prevPageToken);
- 
-    $('.query').val('').blur(); // empty and deselect input
+    handleNextPage();
+    handlePrevPage();
 }
 
-function compileResult(result) {
-    // build array of objects containing search results
-    let resultsPerPage = result.pageInfo.resultsPerPage;
+// build array of objects containing search results
+function compileResults(response) {
+    let resultsPerPage = response.pageInfo.resultsPerPage;
     let resultArr = [];
     
     for(let i = 0; i < resultsPerPage; i++) {
         let resultObj = {
-            title: result.items[i].snippet.title,
-            description: result.items[i].snippet.description,
-            thumbnailUrl: result.items[i].snippet.thumbnails.default.url,
-            id: result.items[i].id.videoId || result.items[i].id.channelId,
-            kind: result.items[i].id.kind,
+            title: response.items[i].snippet.title,
+            description: response.items[i].snippet.description,
+            thumbnailUrl: response.items[i].snippet.thumbnails.default.url,
+            id: response.items[i].id.videoId || response.items[i].id.channelId,
+            kind: response.items[i].id.kind,
             getUrl: function() {
                 if (this.kind.match('video')) {
                     return `https://www.youtube.com/watch?v=${this.id}`;
-                } else {
+                } else if (this.kind.match('channel')) {
                     return `https://www.youtube.com/channel/${this.id}`;
-                }
+                } else { throw 'Response id.kind unknown. Not a video or a channel.'}
             }
         } 
         resultArr.push(resultObj);
@@ -81,22 +77,22 @@ function compileResult(result) {
     return resultArr;
 }
 
-function renderHtml(data) {
-    // clear .search-results
-    clearResults();
+// Render the API data as HTML 
+function renderHtml(results) {
+    clearSearchResults();
     
     // loop through data and append html to .search-results
-    for(let i = 0; i < data.length; i++) {
+    for(let i = 0; i < results.length; i++) {
         let resultHtml = `<div class="result">
-                            <h2>${data[i].title}</h2>
-                            <a href="${data[i].getUrl()}" target="_blank">
-                                <img src="${data[i].thumbnailUrl}" alt="${data[i].description}"/>
+                            <h2>${results[i].title}</h2>
+                            <a href="${results[i].getUrl()}" target="_blank">
+                                <img src="${results[i].thumbnailUrl}" alt="${results[i].description}"/>
                             </a>
                           </div>`
-        
+        // append the html result
         $('.search-results').append(resultHtml);
     }
-    // add Next button
+    // add Next and Prev buttons
     $('.search-results').prepend(`<button type="button" class="next-results">Next</button>`);
     $('.search-results').prepend(`<button type="button" class="prev-results">Prev</button>`);
 }
@@ -105,8 +101,6 @@ function renderHtml(data) {
 // calls API to request the next page of data
 function handleNextPage() {
     $('.next-results').on('click', function() {
-        
-        // make AJAX call to get next results page
         getAPIData(searchString, nextPageToken, handleAPIResponse);
     })
 }
@@ -115,18 +109,13 @@ function handleNextPage() {
 // calls API to request the Prev page of data
 function handlePrevPage() {
     $('.prev-results').on('click', function() {
-
-        // make AJAX call to get prev results page
         getAPIData(searchString, prevPageToken, handleAPIResponse);
     })
 }
+
 // empties the .search-results div
-function clearResults() {
-    // clear search-results
+function clearSearchResults() {
     $('.search-results').html('');
 }
 
 $(handleSearch);
-}
-
-runApp();
