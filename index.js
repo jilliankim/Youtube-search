@@ -1,9 +1,13 @@
+function runApp() {
+
 'use strict';
 
 const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
 const YOUTUBE_API_KEY = 'AIzaSyBaRVmbuUlZraJz_FMp1_EKn2YD81p90mA';
 
 let searchString = '';
+
+let nextPageToken, prevPageToken;
 
 // handles the search 
 function handleSearch() {
@@ -20,14 +24,14 @@ function handleSearch() {
 
 // gets api data
 // if nextPageToken is supplied, use that as a parameter
-function getAPIData(string, nextPageToken, callback) {
+function getAPIData(string, pageToken, callback) {
     const settings = {
         url: YOUTUBE_SEARCH_URL,
         data: {
             q: string,
             key: YOUTUBE_API_KEY,
             part: 'snippet',
-            pageToken: nextPageToken
+            pageToken: pageToken
         },
         dataType: 'json',
         type: 'GET',
@@ -37,18 +41,18 @@ function getAPIData(string, nextPageToken, callback) {
   $.ajax(settings);
 }
 
-function handleAPIResponse(response) {    
-    let nextPageToken = response.nextPageToken;
+function handleAPIResponse(response) {        
 
-    // compile result data into array of objects
-    let resultArr = compileResult(response);
+    // compile result data into array of objects and render as html
+    renderHtml(compileResult(response));
+
+    nextPageToken = response.nextPageToken;
+    prevPageToken = response.prevPageToken;
     
-    // render html
-    renderHtml(resultArr);
-
-    // listen for click on Next button
+    // listen for click on Next and Prev buttons
     handleNextPage(searchString, nextPageToken);
-    
+    handlePrevPage(searchString, prevPageToken);
+ 
     $('.query').val('').blur(); // empty and deselect input
 }
 
@@ -94,20 +98,28 @@ function renderHtml(data) {
     }
     // add Next button
     $('.search-results').prepend(`<button type="button" class="next-results">Next</button>`);
+    $('.search-results').prepend(`<button type="button" class="prev-results">Prev</button>`);
 }
 
 // listens for a click on the Next page button
 // calls API to request the next page of data
-function handleNextPage(searchString, nextPageToken) {
-    $('.search-results').on('click', '.next-results', function() {
-        console.log(`Search String: ${searchString}`);
-        console.log(nextPageToken);
+function handleNextPage() {
+    $('.next-results').on('click', function() {
         
         // make AJAX call to get next results page
         getAPIData(searchString, nextPageToken, handleAPIResponse);
     })
 }
 
+// listens for a click on the Prev page button
+// calls API to request the Prev page of data
+function handlePrevPage() {
+    $('.prev-results').on('click', function() {
+
+        // make AJAX call to get prev results page
+        getAPIData(searchString, prevPageToken, handleAPIResponse);
+    })
+}
 // empties the .search-results div
 function clearResults() {
     // clear search-results
@@ -115,3 +127,6 @@ function clearResults() {
 }
 
 $(handleSearch);
+}
+
+runApp();
