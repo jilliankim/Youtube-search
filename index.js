@@ -65,11 +65,17 @@ function compileResults(response) {
             id: response.items[i].id.videoId || response.items[i].id.channelId,
             kind: response.items[i].id.kind,
             getUrl: function() {
-                if (this.kind.match('video')) {
-                    return `https://www.youtube.com/watch?v=${this.id}`;
-                } else if (this.kind.match('channel')) {
-                    return `https://www.youtube.com/channel/${this.id}`;
-                } else { throw 'Response id.kind unknown. Not a video or a channel.'}
+                //added try catch to catch uncaught error
+                try {
+                    if (this.kind.match('video')) {
+                        return `https://www.youtube.com/watch?v=${this.id}`;
+                    } else if (this.kind.match('channel')) {
+                        return `https://www.youtube.com/channel/${this.id}`;
+                    }
+                } catch (err) {
+                    console.log(err)
+                    throw `response ${this.kind} unknown. Not a video or a channel.`
+                }
             }
         } 
         resultArr.push(resultObj);
